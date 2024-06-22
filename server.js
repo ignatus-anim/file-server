@@ -19,10 +19,12 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+
 // Create 'uploads' directory if it doesn't exist
 if (!fs.existsSync('uploads')) {
     fs.mkdirSync('uploads');
 }
+
 
 // Endpoint to upload a file
 app.post('/upload', upload.single('file'), (req, res) => {
@@ -33,6 +35,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
     res.send(`File uploaded successfully: ${req.file.filename}`);
 });
 
+
 // Endpoint to download a file
 app.get('/download/:filename', (req, res) => {
     const filePath = path.join(__dirname, 'uploads', req.params.filename);
@@ -42,6 +45,44 @@ app.get('/download/:filename', (req, res) => {
         }
     });
 });
+
+
+
+// Endpoint to list all files
+app.get('/listFiles', (req, res) => {
+    fs.readdir('uploads', (err, files) => {
+        if (err) {
+            return res.status(500).send('Error listing files.');
+        }
+        res.json(files);
+    });
+});
+
+
+// Endpoint to search for files
+app.get('/searchFiles', (req, res) => {
+    const searchTerm = req.query.q;
+    fs.readdir('uploads', (err, files) => {
+        if (err) {
+            return res.status(500).send('Error searching files.');
+        }
+        const matchedFiles = files.filter(file => file.includes(searchTerm));
+        res.json(matchedFiles);
+    });
+});
+
+
+// Endpoint to delete a file
+app.delete('/deleteFile/:filename', (req, res) => {
+    const filePath = path.join(__dirname, 'uploads', req.params.filename);
+    fs.unlink(filePath, (err) => {
+        if (err) {
+            return res.status(404).send('File not found or could not be deleted.');
+        }
+        res.send('File deleted successfully.');
+    });
+});
+
 
 // Start the server
 app.listen(PORT, () => {
