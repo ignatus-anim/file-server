@@ -1,20 +1,189 @@
+// import AWS from 'aws-sdk';
+// import multer from 'multer';
+// import { v4 as uuidv4 } from 'uuid';
+// import path from 'path';
+// import dotenv from 'dotenv';
+// import { fileURLToPath } from 'url';
+// import { uploadFile, listFiles, findFileById, deleteFile, generateShareableLink, findFileBySharedLink } from '../models/fileModel.js';
+
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+
+// dotenv.config();
+
+// // Configure AWS SDK
+// AWS.config.update({
+//   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+//   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+//   region: process.env.AWS_REGION
+// });
+
+// const s3 = new AWS.S3();
+// const bucketName = process.env.AWS_BUCKET_NAME;
+
+// // Configure Multer Storage
+// const storage = multer.memoryStorage();
+// const upload = multer({ storage: storage });
+
+// export const renderUpload = (req, res) => {
+//   res.render('upload');
+// };
+
+// export const uploadHandler = async (req, res) => {
+//   try {
+//     upload.single('file')(req, res, async (err) => {
+//       if (err) {
+//         console.error(err);
+//         return res.status(400).json({ message: 'File upload error', err });
+//       }
+
+//       if (!req.file) {
+//         return res.status(400).json({ message: 'No file uploaded' });
+//       }
+
+//       const file = req.file;
+//       const userId = req.user.userId;
+//       const fileId = uuidv4();
+//       const fileName = `${fileId}-${file.originalname}`;
+//       // console.log(file, fileId, fileName);
+
+//       try {
+//         // Upload file to AWS S3
+//         const params = {
+//           Bucket: bucketName,
+//           Key: fileName,
+//           Body: file.buffer,
+//           ContentType: file.mimetype
+//         };
+
+//         await s3.putObject(params).promise();
+//         // console.log("successful");
+//         const downloadURL = `https://${bucketName}.s3.amazonaws.com/${fileName}`;
+
+//         // Save file details into the database
+//         await uploadFile(file.originalname, downloadURL, userId); // Pass parameters directly
+//         res.redirect('/files/list'); // Redirect to list page after successful upload
+//       } catch (err) {
+//         console.error("AWS S3 error:", err);
+//         res.status(500).json({ message: 'Server error', err });
+//       }
+//     });
+//   } catch (err) {
+//     console.error('Unhandled error', err);
+//     res.status(500).json({ message: 'Server error', err });
+//   }
+// };
+
+// export const listHandler = async (req, res) => {
+//   try {
+//     const files = await listFiles();
+//     res.render('files', { files });
+//   } catch (err) {
+//     res.status(500).json({ message: 'Server error', err });
+//   }
+// };
+
+// export const downloadHandler = async (req, res) => {
+//   const { id } = req.params;
+//   try {
+//     const file = await findFileById(id);
+//     if (!file) return res.status(404).json({ message: 'File not found' });
+
+//     const fileName = file.filepath.split('/').pop();
+//     const params = {
+//       Bucket: bucketName,
+//       Key: fileName,
+//     };
+
+//     // Get the file from S3
+//     const fileStream = s3.getObject(params).createReadStream();
+
+//     // Set headers to force download
+//     res.setHeader('Content-Disposition', `attachment; filename="${file.filename}"`);
+//     res.setHeader('Content-Type', file.mimetype);
+
+//     // Pipe the file stream to the response
+//     fileStream.pipe(res);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error', err });
+//   }
+// };
+
+
+// export const deleteHandler = async (req, res) => {
+//   const { id } = req.params;
+//   try {
+//     const file = await findFileById(id);
+//     if (!file) return res.status(404).json({ message: 'File not found' });
+
+//     const fileName = file.filepath.split('/').pop().split('?')[0];
+//     const params = {
+//       Bucket: bucketName,
+//       Key: fileName
+//     };
+
+//     await s3.deleteObject(params).promise();
+
+//     await deleteFile(id);
+//     res.redirect('/files/list');
+//   } catch (err) {
+//     res.status(500).json({ message: 'Server error', err });
+//   }
+// };
+
+// export const shareHandler = async (req, res) => {
+//   const { id } = req.params;
+//   try {
+//     const file = await findFileById(id);
+//     if (!file) return res.status(404).json({ message: 'File not found' });
+
+//     const sharedLink = await generateShareableLink(id);
+//     res.redirect('/files/list');
+//   } catch (err) {
+//     res.status(500).json({ message: 'Server error', err });
+//   }
+// };
+
+// export const accessSharedHandler = async (req, res) => {
+//   const { link } = req.params;
+//   try {
+//     const file = await findFileBySharedLink(link);
+//     if (!file) return res.status(404).json({ message: 'File not found' });
+
+//     res.render('shared', { message: `Download the file: ${file.filename}`, link: `/files/download/${file.id}` });
+//   } catch (err) {
+//     res.status(500).json({ message: 'Server error', err });
+//   }
+// };
+
+
+
+import AWS from 'aws-sdk';
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
 import { uploadFile, listFiles, findFileById, deleteFile, generateShareableLink, findFileBySharedLink } from '../models/fileModel.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Configure Multer Storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Specify the directory where uploaded files should be stored
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname)); // Define the filename and extension
-  }
+dotenv.config();
+
+// Configure AWS SDK
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION
 });
 
-// Initialize Multer Upload
+const s3 = new AWS.S3();
+const bucketName = process.env.AWS_BUCKET_NAME;
+
+// Configure Multer Storage
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 export const renderUpload = (req, res) => {
@@ -36,15 +205,25 @@ export const uploadHandler = async (req, res) => {
       const file = req.file;
       const userId = req.user.userId;
       const fileId = uuidv4();
-      const __dirname = path.dirname(new URL(import.meta.url).pathname);
-      const uploadPath = path.join(__dirname, '..', 'uploads', fileId);
+      const fileName = `${fileId}-${file.originalname}`;
 
       try {
+        // Upload file to AWS S3
+        const params = {
+          Bucket: bucketName,
+          Key: fileName,
+          Body: file.buffer,
+          ContentType: file.mimetype
+        };
+
+        await s3.putObject(params).promise();
+        const downloadURL = `https://${bucketName}.s3.amazonaws.com/${fileName}`;
+
         // Save file details into the database
-        await uploadFile(file.originalname, uploadPath, userId); // Pass parameters directly
+        await uploadFile(file.originalname, downloadURL, userId); // Pass parameters directly
         res.redirect('/files/list'); // Redirect to list page after successful upload
       } catch (err) {
-        console.error("Database error:",err);
+        console.error("AWS S3 error:", err);
         res.status(500).json({ message: 'Server error', err });
       }
     });
@@ -53,8 +232,6 @@ export const uploadHandler = async (req, res) => {
     res.status(500).json({ message: 'Server error', err });
   }
 };
-
-
 
 export const listHandler = async (req, res) => {
   try {
@@ -71,8 +248,22 @@ export const downloadHandler = async (req, res) => {
     const file = await findFileById(id);
     if (!file) return res.status(404).json({ message: 'File not found' });
 
-    res.download(file.filepath, file.filename);
+    const fileName = file.filepath.split('/').pop();
+    const params = {
+      Bucket: bucketName,
+      Key: fileName,
+    };
+
+    // Get the file from S3
+    const fileStream = s3.getObject(params).createReadStream();
+
+    // Set headers to force download
+    res.setHeader('Content-Disposition', `attachment; filename="${file.filename}"`);
+
+    // Pipe the file stream to the response
+    fileStream.pipe(res);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error', err });
   }
 };
@@ -82,6 +273,14 @@ export const deleteHandler = async (req, res) => {
   try {
     const file = await findFileById(id);
     if (!file) return res.status(404).json({ message: 'File not found' });
+
+    const fileName = file.filepath.split('/').pop().split('?')[0];
+    const params = {
+      Bucket: bucketName,
+      Key: fileName
+    };
+
+    await s3.deleteObject(params).promise();
 
     await deleteFile(id);
     res.redirect('/files/list');
@@ -111,6 +310,6 @@ export const accessSharedHandler = async (req, res) => {
 
     res.render('shared', { message: `Download the file: ${file.filename}`, link: `/files/download/${file.id}` });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', err });
+    res.status (500).json({ message: 'Server error', err });
   }
 };
