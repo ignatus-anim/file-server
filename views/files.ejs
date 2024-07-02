@@ -1,15 +1,39 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>File List</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <script>
+    async function copyToClipboard(fileId) {
+      try {
+        const response = await fetch(`/files/share/${fileId}`);
+        const data = await response.json();
+        const sharedLink = data.sharedLink;
+
+        const tempInput = document.createElement('input');
+        tempInput.value = sharedLink;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+
+        alert('Shared link copied to clipboard!');
+      } catch (err) {
+        alert('Failed to copy link.');
+      }
+    }
+  </script>
 </head>
 
 <body>
 
   <h1>Files</h1>
+  <form action="/files/search" method="get">
+    <input type="text" name="q" placeholder="Search files">
+    <button type="submit">Search</button>
+</form>
   <hr>
   <ul>
     <% files.forEach(file => { %>
@@ -17,24 +41,113 @@
         <%= file.filename %> 
         <a href="/files/download/<%= file.id %>">Download</a> 
         <a href="/files/delete/<%= file.id %>">Delete</a> 
-        <a href="/files/share/<%= file.id %>">Copy Url</a> 
+        <button onclick="copyToClipboard('<%= file.id %>')">Copy Url</button>
         <br>
-        <!-- <form action="/files/delete/<%= file.id %>" method="POST" style="display:inline;">
-          <button type="submit">Delete</button>
-        </form>
-        <br>
-        <form action="/files/share/<%= file.id %>" method="POST" style="display:inline;">
-          <button type="submit">Generate Shareable Link</button>
-        </form> -->
-        <br>
-        <% if (file.shared_link) { %>
-          <a href="<%= file.shared_link %>">Shared Link</a>
-        <% } %>
       </li>
+      <hr>
     <% }); %>
   </ul>
 
-  <a href="/files/upload">Upload File</a> | <a href="/">Back to Home</a>
-</body>
+  <a href="/files/upload">Upload File</a> | <a href="/">Back to Home</a> | <a href="/auth/logout">Log Out</a>
+</body> 
 
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    form {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+    }
+    input[type="text"] {
+      padding: 5px;
+      font-size: 1rem;
+    }
+    button {
+      padding: 5px 10px;
+      font-size: 1rem;
+      margin-left: 5px;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      margin: 10px 0;
+    }
+    hr {
+      border: 0;
+      height: 1px;
+      background-color: #ccc;
+      margin: 20px 0;
+    }
+    a {
+      margin-right: 10px;
+      text-decoration: none;
+      color: blue;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+  <script>
+    async function copyToClipboard(fileId) {
+      try {
+        const response = await fetch(`/files/share/${fileId}`);
+        const data = await response.json();
+        const sharedLink = data.sharedLink;
+
+        const tempInput = document.createElement('input');
+        tempInput.value = sharedLink;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+
+        alert('Shared link copied to clipboard!');
+      } catch (err) {
+        alert('Failed to copy link.');
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>Files</h1>
+  <form action="/files/search" method="get">
+    <input type="text" name="q" placeholder="Search files">
+    <button type="submit">Search</button>
+  </form>
+  <hr>
+  <ul>
+    <% files.forEach(file => { %>
+      <li>
+        <%= file.filename %> 
+        <a href="/files/download/<%= file.id %>">Download</a> 
+        <a href="/files/delete/<%= file.id %>">Delete</a> 
+        <button onclick="copyToClipboard('<%= file.id %>')">Copy Url</button>
+      </li>
+      <hr>
+    <% }); %>
+  </ul>
+  <div style="text-align: center;">
+    <a href="/files/upload">Upload File</a> | 
+    <a href="/">Back to Home</a> | 
+    <a href="/auth/logout">Log Out</a>
+  </div>
+</body>
 </html>
