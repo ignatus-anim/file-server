@@ -1,59 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>File List</title>
-  <link rel="stylesheet" href="/css/styles.css">
-  <script>
-    async function copyToClipboard(fileId) {
-      try {
-        const response = await fetch(`/files/share/${fileId}`);
-        const data = await response.json();
-        const sharedLink = data.sharedLink;
-
-        const tempInput = document.createElement('input');
-        tempInput.value = sharedLink;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand('copy');
-        document.body.removeChild(tempInput);
-
-        alert('Shared link copied to clipboard!');
-      } catch (err) {
-        alert('Failed to copy link.');
-      }
-    }
-  </script>
-</head>
-
-<body>
-
-  <h1>Files</h1>
-  <form action="/files/search" method="get">
-    <input type="text" name="q" placeholder="Search files">
-    <button type="submit">Search</button>
-</form>
-  <hr>
-  <ul>
-    <% files.forEach(file => { %>
-      <li>
-        <%= file.filename %> 
-        <a href="/files/download/<%= file.id %>">Download</a> 
-        <a href="/files/delete/<%= file.id %>">Delete</a> 
-        <button onclick="copyToClipboard('<%= file.id %>')">Copy Url</button>
-        <br>
-      </li>
-      <hr>
-    <% }); %>
-  </ul>
-
-  <a href="/files/upload">Upload File</a> | <a href="/">Back to Home</a> | <a href="/auth/logout">Log Out</a>
-</body> 
-
-</html> -->
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -136,7 +80,7 @@
   <ul>
     <% files.forEach(file => { %>
       <li>
-        <%= file.filename %> 
+        <a href="<%= file.filepath %>" target="_blank"><%= file.filename %></a>
         <a href="/files/download/<%= file.id %>">Download</a> 
         <a href="/files/delete/<%= file.id %>">Delete</a> 
         <button onclick="copyToClipboard('<%= file.id %>')">Copy Url</button>

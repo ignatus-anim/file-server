@@ -17,20 +17,21 @@ const app = express();
 const PORT = 3000;
 
 
+app.set('view engine', 'ejs');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.set('view engine', 'ejs');
 app.use(cookieParser());
-
 app.use('/auth', authRoutes);
 app.use('/files', fileRoutes);
+app.use(errorHandler);
+
 
 app.get('/', (req, res) => {
   res.render('index');
 });
 
-app.use(errorHandler);
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on port http://localhost:${PORT}/`);

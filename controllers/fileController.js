@@ -147,7 +147,7 @@ export const shareHandler = async (req, res) => {
     const file = await findFileById(id);
     if (!file) return res.status(404).json({ message: 'File not found' });
 
-    const sharedLink = `https://${bucketName}.s3.amazonaws.com/${file.filepath}`;
+    const sharedLink = file.filepath;
     await generateShareableLink(id, sharedLink);
     res.json({ sharedLink })
     // res.redirect('/files/list');

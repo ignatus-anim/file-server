@@ -11,5 +11,5 @@ router.get('/download/:id', authenticateToken, downloadHandler);
 router.get('/delete/:id', authenticateToken, deleteHandler);
 router.get('/share/:id', authenticateToken, shareHandler);
 router.get('/shared/:link', accessSharedHandler);
-router.get('/search', searchHandler);
+router.get('/search',authenticateToken, searchHandler);
 export default router;

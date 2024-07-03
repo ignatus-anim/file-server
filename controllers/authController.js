@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { createUser, findUserByUsername, findUserByEmail, comparePasswords } from '../models/userModel.js';
+import { createUser, findUserByUsername} from '../models/userModel.js';
 import { config } from '../config.js';
 
 export const renderRegister = (req, res) => {

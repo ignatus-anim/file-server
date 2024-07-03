@@ -26,7 +26,8 @@ export const listFiles = async (userId) => {
     return JSON.parse(cachedFiles);
   }
 
-  const result = await pool.query('SELECT * FROM files WHERE user_id = $1', [userId]);
+  // const result = await pool.query('SELECT * FROM files WHERE user_id = $1', [userId]);
+  const result = await pool.query('SELECT id, filename, filepath as "downloadURL" FROM files WHERE user_id = $1', [userId]);
   const files = result.rows;
 
   await redisClient.set(cacheKey, JSON.stringify(files), { EX: 60 * 5 }); // Cache for 5 minutes
