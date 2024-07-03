@@ -54,7 +54,7 @@ export const uploadHandler = async (req, res) => {
           Bucket: bucketName,
           Key: fileName,
           Body: file.buffer,
-          ContentType: file.mimetype
+          ContentType: file.mimetype,
         };
 
         await s3.putObject(params).promise();
@@ -162,7 +162,8 @@ export const accessSharedHandler = async (req, res) => {
     const file = await findFileBySharedLink(link);
     if (!file) return res.status(404).json({ message: 'File not found' });
 
-    res.render('shared', { message: `Download the file: ${file.filename}`, link: `/files/download/${file.id}` });
+    res.redirect(file.shared_link);
+    // res.render('shared', { message: `Download the file: ${file.filename}`, link: `/files/download/${file.id}` });
   } catch (err) {
     res.status (500).json({ message: 'Server error', err });
   }

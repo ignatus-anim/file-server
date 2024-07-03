@@ -80,10 +80,10 @@
   <ul>
     <% files.forEach(file => { %>
       <li>
-        <a href="<%= file.filepath %>" target="_blank"><%= file.filename %></a>
+        <%= file.filename %>
         <a href="/files/download/<%= file.id %>">Download</a> 
         <a href="/files/delete/<%= file.id %>">Delete</a> 
-        <button onclick="copyToClipboard('<%= file.id %>')">Copy Url</button>
+        <button onclick="copyToClipboard('<%= file.id %>')">Share</button>
       </li>
       <hr>
     <% }); %>
