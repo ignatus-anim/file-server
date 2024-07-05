@@ -7,6 +7,17 @@ import { fileURLToPath } from 'url';
 import { uploadFile, listFiles, findFileById, deleteFile, generateShareableLink, findFileBySharedLink, searchFiles } from '../models/fileModel.js';
 import redisClient from '../redisClient.js';
 
+// import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { fromIni, fromEnv } from "@aws-sdk/credential-providers";
+import { HttpRequest } from "@smithy/protocol-http";
+import {
+  getSignedUrl,
+  S3RequestPresigner,
+} from "@aws-sdk/s3-request-presigner";
+import { parseUrl } from "@smithy/url-parser";
+import { formatUrl } from "@aws-sdk/util-format-url";
+import { Hash } from "@smithy/hash-node";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,6 +33,7 @@ AWS.config.update({
 
 const s3 = new AWS.S3();
 const bucketName = process.env.AWS_BUCKET_NAME;
+const region = process.env.AWS_REGION;
 
 // Configure Multer Storage
 const storage = multer.memoryStorage();
@@ -55,6 +67,7 @@ export const uploadHandler = async (req, res) => {
           Key: fileName,
           Body: file.buffer,
           ContentType: file.mimetype,
+          ACL: "public-read"
         };
 
         await s3.putObject(params).promise();
@@ -83,6 +96,7 @@ export const listHandler = async (req, res) => {
   try {
     const userId = req.user.id;
     const files = await listFiles(userId);
+    console.log(files)
     res.render('files', { files });
   } catch (err) {
     console.error(err)
@@ -140,6 +154,31 @@ export const deleteHandler = async (req, res) => {
     res.status(500).json({ message: 'Server error', err });
   }
 };
+
+const createPresignedUrlWithoutClient = async (url) => {
+  const presigner = new S3RequestPresigner({
+    credentials: fromEnv(),
+    region,
+    sha256: Hash.bind(null, "sha256"),
+  });
+
+
+  try {
+    const signedUrlObject = await presigner.presign(new HttpRequest(url));
+    signedUrlObject.hostname = url
+    console.log(signedUrlObject)
+    return formatUrl(signedUrlObject);
+    
+  } catch (error) {
+    console.error(error)
+  }
+};
+
+// const createPresignedUrlWithClient = async ({ region, bucket, key }) => {
+//   const client = new S3Client({ region });
+//   const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+//   return getSignedUrl(client, command, { expiresIn: 3600 });
+// };
 
 export const shareHandler = async (req, res) => {
   const { id } = req.params;

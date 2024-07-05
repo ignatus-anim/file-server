@@ -80,7 +80,7 @@
   <ul>
     <% files.forEach(file => { %>
       <li>
-        <%= file.filename %>
+        <a href="<%= file.downloadURL %>"><%= file.filename %></a>
         <a href="/files/download/<%= file.id %>">Download</a> 
         <a href="/files/delete/<%= file.id %>">Delete</a> 
         <button onclick="copyToClipboard('<%= file.id %>')">Share</button>
