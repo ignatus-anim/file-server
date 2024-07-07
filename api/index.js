@@ -4,10 +4,10 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv'
 import { fileURLToPath } from 'url';
-import authRoutes from './routes/authRoutes.js';
-import fileRoutes from './routes/fileRoutes.js';
-import adminRoutes from './routes/adminRoutes.js';
-import { errorHandler } from './middleware/errorMiddleware.js';
+import authRoutes from '../routes/authRoutes.js';
+import fileRoutes from '../routes/fileRoutes.js';
+import adminRoutes from '../routes/adminRoutes.js';
+import { errorHandler } from '../middleware/errorMiddleware.js';
 
 dotenv.config();
 
@@ -39,4 +39,4 @@ app.listen(PORT, () => {
   console.log(`Server is running on port http://localhost:${PORT}/`);
 });
 
-module.exports = app;
+export default app
