@@ -8,6 +8,9 @@ CREATE TABLE users (
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    is_verified BOOLEAN DEFAULT FALSE
+    verification_token VARCHAR
+    reset_token VARCHAR()
 );
 
 
@@ -19,7 +22,11 @@ CREATE TABLE files (
     filepath VARCHAR(255) NOT NULL,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     shared_link VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    title VARCHAR(255),
+    description TEXT,
+    download_count INT DEFAULT 0,
+    email_count INT DEFAULT 0
 );
 
 

@@ -1,13 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>File Server</title>
-  <link rel="stylesheet" href="/css/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Server Platform</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-around;
+            background-color: #444;
+            padding: 10px 0;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+        }
+
+        nav a:hover {
+            background-color: #555;
+        }
+
+        main {
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .card h2 {
+            margin-top: 0;
+        }
+    </style>
 </head>
 <body>
-  <h1>Welcome to the File Server</h1>
-  <a href="/auth/register">Register</a> | <a href="/auth/login">Login</a>
+    <header>
+        <h1>Welcome to the File Server Platform</h1>
+    </header>
+    <nav>
+        <a href="/auth/register">Sign Up</a>
+        <a href="/auth/login">User Login</a>
+        <a href="/admin/login">Admin Login</a>
+    </nav>
+    <main>
+        <div class="container">
+            <div class="card">
+                <h2>Welcome!</h2>
+                <p>This platform allows you to distribute and access documents easily and remotely. Please sign up or log in to get started.</p>
+            </div>
+        </div>
+    </main>
 </body>
 </html>

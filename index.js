@@ -6,6 +6,7 @@ import dotenv from 'dotenv'
 import { fileURLToPath } from 'url';
 import authRoutes from './routes/authRoutes.js';
 import fileRoutes from './routes/fileRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 import { errorHandler } from './middleware/errorMiddleware.js';
 
 dotenv.config();
@@ -24,6 +25,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 app.use('/auth', authRoutes);
 app.use('/files', fileRoutes);
+app.use('/admin', adminRoutes);
 app.use(errorHandler);
 
 

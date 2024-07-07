@@ -4,8 +4,9 @@ import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
-import { uploadFile, listFiles, findFileById, deleteFile, generateShareableLink, findFileBySharedLink, searchFiles } from '../models/fileModel.js';
+import { uploadFile, listFiles, findFileById, deleteFile, generateShareableLink, findFileBySharedLink, searchFiles, verifyAdminStatus, incrementDownloadCount, incrementEmailCount } from '../models/fileModel.js';
 import redisClient from '../redisClient.js';
+import nodemailer from 'nodemailer';
 
 // import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { fromIni, fromEnv } from "@aws-sdk/credential-providers";
@@ -23,6 +24,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config();
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  auth: {
+      user: process.env.SMTP_LOGIN,
+      pass: process.env.SMTP_PASSWORD
+  }
+});
 
 // Configure AWS SDK
 AWS.config.update({
@@ -56,6 +66,8 @@ export const uploadHandler = async (req, res) => {
       }
 
       const file = req.file;
+      const title = req.body.title
+      const description = req.body.description
       const userId = req.user.id;
       const fileId = uuidv4();
       const fileName = `${fileId}-${file.originalname}`;
@@ -74,7 +86,7 @@ export const uploadHandler = async (req, res) => {
         const downloadURL = `https://${bucketName}.s3.amazonaws.com/${fileName}`;
 
         // Save file details into the database
-        await uploadFile(file.originalname, downloadURL, userId); // Pass parameters directly
+        await uploadFile(file.originalname, downloadURL, userId, title, description); // Pass parameters directly
         
         // Invalidate the cache for listFiles
         const cacheKey = `files:${userId}`;
@@ -95,9 +107,10 @@ export const uploadHandler = async (req, res) => {
 export const listHandler = async (req, res) => {
   try {
     const userId = req.user.id;
+    const isAdmin = await verifyAdminStatus(userId)
+
     const files = await listFiles(userId);
-    console.log(files)
-    res.render('files', { files });
+    res.render('files', { files, isAdmin });
   } catch (err) {
     console.error(err)
     res.status(500).json({ message: 'Server error', err });
@@ -116,6 +129,8 @@ export const downloadHandler = async (req, res) => {
       Key: fileName,
     };
 
+    incrementDownloadCount(id)
+    
     // Get the file from S3
     const fileStream = s3.getObject(params).createReadStream();
 
@@ -155,31 +170,6 @@ export const deleteHandler = async (req, res) => {
   }
 };
 
-const createPresignedUrlWithoutClient = async (url) => {
-  const presigner = new S3RequestPresigner({
-    credentials: fromEnv(),
-    region,
-    sha256: Hash.bind(null, "sha256"),
-  });
-
-
-  try {
-    const signedUrlObject = await presigner.presign(new HttpRequest(url));
-    signedUrlObject.hostname = url
-    console.log(signedUrlObject)
-    return formatUrl(signedUrlObject);
-    
-  } catch (error) {
-    console.error(error)
-  }
-};
-
-// const createPresignedUrlWithClient = async ({ region, bucket, key }) => {
-//   const client = new S3Client({ region });
-//   const command = new GetObjectCommand({ Bucket: bucket, Key: key });
-//   return getSignedUrl(client, command, { expiresIn: 3600 });
-// };
-
 export const shareHandler = async (req, res) => {
   const { id } = req.params;
   try {
@@ -188,12 +178,46 @@ export const shareHandler = async (req, res) => {
 
     const sharedLink = file.filepath;
     await generateShareableLink(id, sharedLink);
+    
     res.json({ sharedLink })
     // res.redirect('/files/list');
   } catch (err) {
     res.status(500).json({ message: 'Server error', err });
   }
 };
+
+export const renderShareViaEmail = async (req, res) => {
+  const {id} = req.params
+
+  res.render('share-via-email', {id})
+}
+
+export const shareViaEmail = async (req, res) => {
+  const {id, email} = req.body
+
+  try {
+    const file = await findFileById(id);
+    if (!file) return res.status(404).json({ message: 'File not found' });
+
+    const sharedLink = file.filepath;
+    await generateShareableLink(id, sharedLink);
+
+    await transporter.sendMail({
+      from: "ignatusa3@gmail.com",
+      to: email,
+      subject: 'A file has been shared with you',
+      text: `Click the link to access a file shared with you: ${sharedLink}`,
+      html: `<a href='${sharedLink}'>Click the link to access a file shared with you: ${sharedLink}</a>`
+  });
+
+  incrementEmailCount(id)
+
+  res.status(200).redirect("/files/list")
+    
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', err });
+  }
+}
 
 export const accessSharedHandler = async (req, res) => {
   const { link } = req.params;
