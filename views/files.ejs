@@ -97,7 +97,7 @@
         <tbody>
           <% files.forEach(function(file) { %>
             <tr>
-              <td><a href="<%= file.filename %>"><%= file.title %></a></td>
+              <td><p><%= file.title %></p></td>
               <td><p><%= file.description %></p></td>
               <td><a href="/files/download/<%= file.id %>">Download</a></td>
               <% if (isAdmin) { %>
